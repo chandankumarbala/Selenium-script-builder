@@ -1,0 +1,95 @@
+<html>
+<head>
+<script src="FileSaver.min.js"></script>
+<script src="jquery-1.12.4.min.js"></script>
+<script>
+$(function(){
+var output = [];
+var workingDir;
+var testCase;
+String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.split(search).join(replacement);
+};
+
+$("#jsonfiles").change(function(evt){
+if($("#workingDIrectory").val().lenght==0){
+alert("Provide working directory");
+}else{
+ var files = evt.target.files; // FileList object
+ workingDir=$("#workingDIrectory").val();
+    for (var i = 0, f; f = files[i]; i++) {
+      output[i]=workingDir+"\\"+escape(f.name);
+	  $("#fileList").append("<li>"+workingDir+'\\'+escape(f.name)+"</li>");
+    }
+}
+});
+
+$("#testCaseFile").change(function(evnt){
+if($("#workingDIrectory").val().lenght==0){
+alert("Provide working directory");
+}else{
+workingDir=$("#workingDIrectory").val();
+var files=evnt.target.files;
+testCase=workingDir+'\\'+escape(files[0].name);
+$("#testList").append("<li>"+workingDir+'\\'+escape(files[0].name)+"</li>");
+}
+
+});
+
+$("#generate").click(function(){
+var fileContents;
+var inputFile=document.getElementById('testCaseFile');
+var reader = new FileReader();
+reader.onload = function(e) {
+	var newFileContent="";
+	fileContents = reader.result;
+	fileContents=fileContents.toString();
+	var internalData=fileContents.split("<body")[1].split(">").slice(1).join(">").split("</body>")[0];
+	//var headerPart=fileContents.replace("<body>"+internalData+"</body>", "W3Schools");
+	//alert(headerPart);
+	var oriGinaltabularData=internalData;
+	//alert($(oriGinaltabularData).find("td:contains('forJson')").parent().find("td:eq( 1 )" ).html());
+	for(i=0;i<output.length;i++){
+		
+		var tempTable=oriGinaltabularData;
+		var jsonFilePath="file://"+output[i].replaceAll("\\","/");
+		var outputTab=$(tempTable).find("td:contains('forJson')").parent().find("td:eq( 1 )" ).text(jsonFilePath).parent().parent().parent().html();
+		//alert(outputTab);
+		//console.log(output[i]+"----"+tempTable.toString());
+		newFileContent+='<table cellpadding="1" cellspacing="1" border="1">'+outputTab.toString()+'</table>';
+	}
+	
+	var fileContent=fileContents.replace(oriGinaltabularData, newFileContent);
+	//console.log(fileContent);
+	var file = new File([newFileContent], "googleEntire.html", {type: "text/plain;charset=utf-8"});
+	saveAs(file);
+	
+}
+reader.readAsText(inputFile.files[0]);
+
+ 
+});
+
+});
+
+
+</script>
+</head>
+<body>
+
+<h3>Provide working directory </h3><hr>
+<input type="text" id="workingDIrectory" placeholder="working Directory" value="D:\fileWrite">
+
+<h3>Select Json Files</h3><hr>
+<input type="file" id="jsonfiles" name="files[]" multiple />
+<div><ul id="fileList"></ul></div>
+
+<h3>Select original Test case file</h3><hr>
+<input type="file" id="testCaseFile" name="testCaseFile[]" />
+<div><ul id="testList"></ul></div>
+
+<br><br>
+<input type="button" id="generate" value="Generate All TestCases"/>
+</body>
+</html>
